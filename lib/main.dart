@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:signature/signature.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,232 +9,61 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Moja Aplikacja',
+      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginPage(),
+      home: LoginScreen(),
     );
   }
 }
 
-class LoginPage extends StatefulWidget {
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final response = await http.post(
-        Uri.parse('http://localhost:8080/api/auth/signin'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'username': _usernameController.text,
-          'password': _passwordController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logowanie nie powiodło się')),
-        );
-      }
-    }
-  }
-
+class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Logowanie'),
+        title: Text('Login'),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    hintText: 'Nazwa użytkownika',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Proszę wprowadzić nazwę użytkownika';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    hintText: 'Hasło',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Proszę wprowadzić hasło';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _login,
-                  child: Text('Zaloguj się'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegistrationPage()),
-                    );
-                  },
-                  child: Text('Rejestracja'),
-                ),
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Username',
+              ),
             ),
-          ),
+            TextField(
+              obscureText: true,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Password',
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
+                );
+              },
+              child: Text('Login'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class RegistrationPage extends StatefulWidget {
-  @override
-  _RegistrationPageState createState() => _RegistrationPageState();
-}
-
-class _RegistrationPageState extends State<RegistrationPage> {
-  final _usernameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      final response = await http.post(
-        Uri.parse('http://localhost:8080/api/auth/signup'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'username': _usernameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-          'role': ['ROLE_USER'],
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        Navigator.pop(context);
-      } else {
-        throw Exception('Failed to register.');
-      }
-    }
-  }
-
+class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rejestracja'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    hintText: 'Nazwa użytkownika',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Proszę wprowadzić nazwę użytkownika';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    hintText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Proszę wprowadzić email';
-                    }
-                    // Dodajemy walidację e-maila
-                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                    if (!emailRegex.hasMatch(value)) {
-                      return 'Proszę wprowadzić poprawny email';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    hintText: 'Hasło',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Proszę wprowadzić hasło';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _register,
-                  child: Text('Zarejestruj się'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Strona główna'),
+        title: Text('Select Role'),
       ),
       body: Center(
         child: Column(
@@ -243,19 +71,264 @@ class HomePage extends StatelessWidget {
           children: <Widget>[
             ElevatedButton(
               onPressed: () {
-                // Tutaj dodaj funkcję dla przycisku "Podpisz umowę"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OwnerScreen()),
+                );
               },
-              child: Text('Podpisz umowę'),
+              child: Text('Owner'),
             ),
-            SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                // Tutaj dodaj funkcję dla przycisku "Obejrzyj pokój"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TenantScreen()),
+                );
               },
-              child: Text('Obejrzyj pokój'),
+              child: Text('Tenant'),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class OwnerScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Owner Options'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddPropertyScreen()),
+                );
+              },
+              child: Text('Add Property'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OwnerDetailsScreen()),
+                );
+              },
+              child: Text('Your Details'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OwnerDetailsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Owner Details'),
+      ),
+      body: Center(
+        child: Text('Owner Details Screen'),
+      ),
+    );
+  }
+}
+
+class TenantScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Tenant Options'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignAgreementScreen()),
+                );
+              },
+              child: Text('Sign Agreement'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ViewRoomScreen()),
+                );
+              },
+              child: Text('View Room'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddPropertyScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Property'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Address',
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.remove),
+                  onPressed: () {},
+                ),
+                Text('Number of Rooms'),
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ViewRoomScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('View Room'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Phone Number',
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EndScreen()),
+                );
+              },
+              child: Text('Next'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SignAgreementScreen extends StatelessWidget {
+  final SignatureController _controller = SignatureController(
+    penStrokeWidth: 5,
+    penColor: Colors.black,
+    exportBackgroundColor: Colors.white,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Sign Agreement'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Signature(
+              controller: _controller,
+              height: 300,
+              backgroundColor: Colors.lightBlueAccent,
+            ),
+            Text('Sign your name'),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AgreementConfirmationScreen()),
+                );
+              },
+              child: Text('Next'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AgreementConfirmationScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Agreement Confirmation'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Thank you for signing the agreement, please select your move-in date'),
+            ElevatedButton(
+              onPressed: () {
+                showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2022),
+                  lastDate: DateTime(2025),
+                );
+              },
+              child: Text('Select Date'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EndScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('End'),
+      ),
+      body: Center(
+        child: Text('End'),
       ),
     );
   }
