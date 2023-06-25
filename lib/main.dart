@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:signature/signature.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -18,38 +19,66 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8080/api/auth/signin'),
+      body: jsonEncode({
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => RoleScreen()),
+      );
+    } else {
+      // Handle error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
       ),
-      body: Center(
+      body: Padding(
+        padding: EdgeInsets.all(8.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Username',
-              ),
+              controller: _usernameController,
+              decoration: InputDecoration(labelText: 'Username'),
             ),
             TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Password',
-              ),
             ),
             ElevatedButton(
+              onPressed: _login,
+              child: Text('Login'),
+            ),
+            TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
+                  MaterialPageRoute(builder: (context) => SignupScreen()),
                 );
               },
-              child: Text('Login'),
+              child: Text('Register'),
             ),
           ],
         ),
@@ -58,7 +87,73 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class RoleSelectionScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
+  @override
+  _SignupScreenState createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  Future<void> _signup() async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8080/api/auth/signup'),
+      body: jsonEncode({
+        'username': _usernameController.text,
+        'email': _emailController.text,
+        'password': _passwordController.text,
+        'role': ['ROLE_USER'],
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => RoleScreen()),
+      );
+    } else {
+      // Handle error
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Register'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+        TextField(
+        controller: _usernameController,
+          decoration: InputDecoration(labelText: 'Username'),
+        ),
+        TextField(
+          controller: _emailController,
+          decoration: InputDecoration(labelText: 'Email'),
+        ),
+        TextField(
+          controller: _passwordController,
+          decoration: InputDecoration(labelText: 'Password'),
+          obscureText: true,
+        ),
+        ElevatedButton(
+          onPressed: _signup,
+          child: Text('Register'),
+        ),
+        ],
+      ),
+    ),
+    );
+  }
+}
+
+class RoleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +164,7 @@ class RoleSelectionScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text('Zaloguj się jako:'),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -76,16 +172,16 @@ class RoleSelectionScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => OwnerScreen()),
                 );
               },
-              child: Text('Owner'),
+              child: Text('Właściciel'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => TenantScreen()),
+                  MaterialPageRoute(builder: (context) => RenterScreen()),
                 );
               },
-              child: Text('Tenant'),
+              child: Text('Wynajmujący'),
             ),
           ],
         ),
@@ -99,219 +195,139 @@ class OwnerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Owner Options'),
+        title: Text('Owner Screen'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AddPropertyScreen()),
-                );
-              },
-              child: Text('Add Property'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OwnerDetailsScreen()),
-                );
-              },
-              child: Text('Your Details'),
-            ),
-          ],
+        child: Text('Owner Screen'),
+      ),
+    );
+  }
+}
+
+class RenterScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Renter Screen'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CleaningScheduleScreen()),
+            );
+          },
+          child: Text('Harmonogram sprzątania'),
         ),
       ),
     );
   }
 }
 
-class OwnerDetailsScreen extends StatelessWidget {
+
+
+class CleaningScheduleScreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Owner Details'),
-      ),
-      body: Center(
-        child: Text('Owner Details Screen'),
-      ),
-    );
-  }
+  _CleaningScheduleScreenState createState() => _CleaningScheduleScreenState();
 }
 
-class TenantScreen extends StatelessWidget {
+class _CleaningScheduleScreenState extends State<CleaningScheduleScreen> {
+  DateTime _startDate = DateTime.now();
+  DateTime _endDate = DateTime.now();
+  List<TimeSlot> _timeSlots = [];
+
+  Future<void> _addTimeSlot() async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8080/api/schedules/{scheduleId}/timeslots'),
+      body: jsonEncode({
+        'startDate': _startDate.toIso8601String(),
+        'endDate': _endDate.toIso8601String(),
+        'user': {'id': 'your-user-id'}, // Replace with your user id
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 201) {
+      _getTimeSlots();
+    } else {
+      // Handle error
+    }
+  }
+
+  Future<void> _removeTimeSlot(String timeSlotId) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:8080/api/schedules/{scheduleId}/timeslots/$timeSlotId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 204) {
+      _getTimeSlots();
+    } else {
+      // Handle error
+    }
+  }
+
+  Future<void> _getTimeSlots() async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8080/api/schedules/users/{userId}/timeslots'), // Replace with your user id
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> timeSlotsJson = jsonDecode(response.body);
+      setState(() {
+        _timeSlots = timeSlotsJson.map((json) => TimeSlot.fromJson(json)).toList();
+      });
+    } else {
+      // Handle error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tenant Options'),
+        title: Text('Cleaning Schedule'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text('Start Date: $_startDate'),
+            Text('End Date: $_endDate'),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignAgreementScreen()),
-                );
-              },
-              child: Text('Sign Agreement'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ViewRoomScreen()),
-                );
-              },
-              child: Text('View Room'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AddPropertyScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Add Property'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Address',
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.remove),
-                  onPressed: () {},
-                ),
-                Text('Number of Rooms'),
-                IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ViewRoomScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('View Room'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Phone Number',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EndScreen()),
-                );
-              },
-              child: Text('Next'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SignAgreementScreen extends StatelessWidget {
-  final SignatureController _controller = SignatureController(
-    penStrokeWidth: 5,
-    penColor: Colors.black,
-    exportBackgroundColor: Colors.white,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Sign Agreement'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Signature(
-              controller: _controller,
-              height: 300,
-              backgroundColor: Colors.lightBlueAccent,
-            ),
-            Text('Sign your name'),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AgreementConfirmationScreen()),
-                );
-              },
-              child: Text('Next'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AgreementConfirmationScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Agreement Confirmation'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('Thank you for signing the agreement, please select your move-in date'),
-            ElevatedButton(
-              onPressed: () {
-                showDatePicker(
+              onPressed: () async {
+                final picked = await showDateRangePicker(
                   context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2022),
-                  lastDate: DateTime(2025),
+                  firstDate: DateTime(DateTime.now().year - 5),
+                  lastDate: DateTime(DateTime.now().year + 5),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _startDate = picked.start;
+                    _endDate = picked.end;
+                  });
+                }
+              },
+              child: Text('Pick date range'),
+            ),
+            ElevatedButton(
+              onPressed: _addTimeSlot,
+              child: Text('Add Time Slot'),
+            ),
+            ListView.builder(
+              itemCount: _timeSlots.length,
+              itemBuilder: (context, index) {
+                final timeSlot = _timeSlots[index];
+                return ListTile(
+                  title: Text('${timeSlot.startDate} - ${timeSlot.endDate}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () => _removeTimeSlot(timeSlot.id),
+                  ),
                 );
               },
-              child: Text('Select Date'),
             ),
           ],
         ),
@@ -320,16 +336,23 @@ class AgreementConfirmationScreen extends StatelessWidget {
   }
 }
 
-class EndScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('End'),
-      ),
-      body: Center(
-        child: Text('End'),
-      ),
+class TimeSlot {
+  final String id;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  TimeSlot({
+    required this.id,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  factory TimeSlot.fromJson(Map<String, dynamic> json) {
+    return TimeSlot(
+      id: json['id'],
+      startDate: DateTime.parse(json['startDate']),
+      endDate: DateTime.parse(json['endDate']),
     );
   }
 }
+
